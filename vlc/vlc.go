@@ -49,12 +49,18 @@ func NewPlayer(exePath string, tcpPort int) langlearn.VideoPlayer {
 }
 
 func (p *vlcPlayer) Start() (<-chan langlearn.Position, error) {
-	cmd := exec.Command(p.exePath,
+	args := []string{
 		"--extraintf=rc",
 		fmt.Sprintf("--rc-host=%s:%d", "localhost", p.tcpPort),
 		"--one-instance",
-		"--rc-quiet",
-	)
+	}
+
+	// TODO: specific to VLC version?
+	if runtime.GOOS == "windows" {
+		args = append(args, "--rc-quiet")
+	}
+
+	cmd := exec.Command(p.exePath, args...)
 	err := cmd.Start()
 	if err != nil {
 		return nil, err
