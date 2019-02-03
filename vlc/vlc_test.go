@@ -15,7 +15,7 @@ func TestVLCStart(t *testing.T) {
 	_, err := player.Start()
 	assert.Nil(t, err)
 	time.Sleep(time.Second * 3)
-	err = player.Stop()
+	err = player.Shutdown()
 	assert.Nil(t, err)
 }
 
@@ -36,6 +36,6 @@ func TestVLCPlay(t *testing.T) {
 
 		time.Sleep(time.Second * 5)
 	}
-	err = player.Stop()
+	err = player.Shutdown()
 	assert.Nil(t, err)
 }

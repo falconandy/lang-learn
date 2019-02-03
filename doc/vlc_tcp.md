@@ -1,5 +1,6 @@
 # VLC TCP commands
 
+## Linux (VLC 4.0.0-dev)
 ```
 +----[ CLI commands ]
 | add XYZ  . . . . . . . . . . . . . . . . . . . . add XYZ to playlist

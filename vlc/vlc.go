@@ -13,10 +13,17 @@ import (
 	"github.com/falconandy/lang-learn"
 )
 
+const (
+	startupDelay       = time.Second * 2
+	initialReadTimeout = time.Millisecond * 500
+	nextReadTimeout    = time.Millisecond * 200
+)
+
 type vlcPlayer struct {
 	exePath  string
 	tcpPort  int
 	promptRe *regexp.Regexp
+	version  *Version
 
 	conn       net.Conn
 	connReader *bufio.Reader
@@ -41,7 +48,7 @@ func (p *vlcPlayer) Start() (<-chan langlearn.Position, error) {
 		return nil, err
 	}
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(startupDelay)
 
 	p.conn, err = net.Dial("tcp", fmt.Sprintf("%s:%d", "localhost", p.tcpPort))
 	if err != nil {
@@ -49,17 +56,22 @@ func (p *vlcPlayer) Start() (<-chan langlearn.Position, error) {
 	}
 	p.connReader = bufio.NewReader(p.conn)
 
+	helpOutput, err := p.execCommand("help")
+	if err != nil {
+		return nil, err
+	}
+
+	p.version = NewVersionFactory().Find(helpOutput)
+
 	commands, progress := make(chan *command), make(chan langlearn.Position)
 	p.commands = commands
 	go p.run(commands, progress)
 
-	p.commands <- newCommand(p, "help").withResponsePostfix("+----[ end of help ]")
-
 	return progress, nil
 }
 
-func (p *vlcPlayer) Stop() error {
-	cmd := newCommand(p, "shutdown")
+func (p *vlcPlayer) Shutdown() error {
+	cmd := newCommand(p, p.version.shutdownCommand)
 	p.commands <- cmd
 	result := <-cmd.result
 	return result.err
@@ -105,11 +117,11 @@ LOOP:
 		select {
 		case cmd := <-commands:
 			cmd.Execute()
-			if cmd.cmd == "shutdown" {
+			if cmd.cmd == p.version.shutdownCommand {
 				break LOOP
 			}
 		case <-time.After(time.Millisecond * 100):
-			positionResponse, err := p.execCommand("get_time", 1, "")
+			positionResponse, err := p.execCommand("get_time")
 			if err != nil {
 				fmt.Printf("failed to execute a command '%s': %v\n", "get_time", err)
 				return
@@ -134,7 +146,7 @@ LOOP:
 	}
 }
 
-func (p *vlcPlayer) execCommand(command string, responseLineCount int, responsePostfix string) (string, error) {
+func (p *vlcPlayer) execCommand(command string) (string, error) {
 	println("INP: ", command)
 
 	_, err := fmt.Fprintln(p.conn, command)
@@ -143,8 +155,14 @@ func (p *vlcPlayer) execCommand(command string, responseLineCount int, responseP
 	}
 
 	var output []string
-	count := 0
-	for count < responseLineCount {
+	readTimeout := initialReadTimeout
+	for {
+		err := p.conn.SetReadDeadline(time.Now().Add(readTimeout))
+		if err != nil {
+			fmt.Printf("can't set read deadline for a VLC connection: %v\n", err)
+			break
+		}
+
 		line, err := p.connReader.ReadString('\n')
 		if err != nil {
 			break
@@ -154,12 +172,8 @@ func (p *vlcPlayer) execCommand(command string, responseLineCount int, responseP
 
 		println(line)
 
-		if responsePostfix != "" && line == responsePostfix {
-			break
-		}
-
 		output = append(output, line)
-		count++
+		readTimeout = nextReadTimeout
 	}
 	return strings.Join(output, "\n"), nil
 }
