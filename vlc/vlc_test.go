@@ -11,7 +11,7 @@ import (
 )
 
 func TestVLCStart(t *testing.T) {
-	player := NewPlayer("vlc", 2019)
+	player := NewPlayer("", 2019)
 	_, err := player.Start()
 	assert.Nil(t, err)
 	time.Sleep(time.Second * 3)
@@ -21,7 +21,7 @@ func TestVLCStart(t *testing.T) {
 
 func TestVLCPlay(t *testing.T) {
 	rand.Seed(time.Now().Unix())
-	player := NewPlayer("vlc", 2019)
+	player := NewPlayer("", 2019)
 	_, err := player.Start()
 	assert.Nil(t, err)
 

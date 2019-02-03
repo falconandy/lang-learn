@@ -6,6 +6,7 @@ import (
 	"net"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +32,15 @@ type vlcPlayer struct {
 }
 
 func NewPlayer(exePath string, tcpPort int) langlearn.VideoPlayer {
+	if exePath == "" {
+		switch runtime.GOOS {
+		case "windows":
+			exePath = `C:\Program Files (x86)\VideoLAN\VLC\vlc.exe`
+		default:
+			exePath = "vlc"
+		}
+	}
+
 	return &vlcPlayer{
 		exePath:  exePath,
 		tcpPort:  tcpPort,
@@ -42,7 +52,9 @@ func (p *vlcPlayer) Start() (<-chan langlearn.Position, error) {
 	cmd := exec.Command(p.exePath,
 		"--extraintf=rc",
 		fmt.Sprintf("--rc-host=%s:%d", "localhost", p.tcpPort),
-		"--one-instance") //"--rc-quiet",
+		"--one-instance",
+		"--rc-quiet",
+	)
 	err := cmd.Start()
 	if err != nil {
 		return nil, err
@@ -78,11 +90,30 @@ func (p *vlcPlayer) Shutdown() error {
 }
 
 func (p *vlcPlayer) Play(videoPath string) error {
+	stopCmd := newCommand(p, "stop")
+	p.commands <- stopCmd
+	stopResult := <-stopCmd.result
+	if stopResult.err != nil {
+		return stopResult.err
+	}
+
 	addCmd := newCommand(p, fmt.Sprintf(`add %s`, videoPath))
 	p.commands <- addCmd
 	addResult := <-addCmd.result
 	if addResult.err != nil {
 		return addResult.err
+	}
+
+	for {
+		cmd := newCommand(p, "is_playing")
+		p.commands <- cmd
+		cmdResult := <-cmd.result
+		if cmdResult.err != nil {
+			return cmdResult.err
+		}
+		if cmdResult.output == "1" {
+			break
+		}
 	}
 
 	strackCmd := newCommand(p, "strack -1")
@@ -169,6 +200,10 @@ func (p *vlcPlayer) execCommand(command string) (string, error) {
 		}
 
 		line = strings.TrimSpace(p.promptRe.ReplaceAllLiteralString(line, ""))
+
+		if strings.HasPrefix(line, "status change:") {
+			continue
+		}
 
 		println(line)
 
