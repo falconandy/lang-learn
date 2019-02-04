@@ -7,8 +7,15 @@ type VideoPlayer interface {
 	Shutdown() error
 
 	Play(videoPath string) error
+	Stop() error
+	Pause() error
+
 	Seek(position Position) error
 
-	SpeedSlower()
-	SpeedNormal()
+	SpeedFaster() error
+	SpeedSlower() error
+	SpeedNormal() error
+
+	AudioTrack() (int, error)
+	SetAudioTrack(track int) error
 }
