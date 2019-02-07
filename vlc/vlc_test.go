@@ -12,7 +12,7 @@ import (
 
 func TestVLCStart(t *testing.T) {
 	player := NewPlayer("", 2019)
-	_, err := player.Start()
+	err := player.Start()
 	assert.Nil(t, err)
 	time.Sleep(time.Second * 3)
 	err = player.Shutdown()
@@ -22,7 +22,7 @@ func TestVLCStart(t *testing.T) {
 func TestVLCPlay(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 	player := NewPlayer("", 2019)
-	_, err := player.Start()
+	err := player.Start()
 	assert.Nil(t, err)
 
 	err = player.Play("/media/falconandy/_VIDEO/SLR.avi")
