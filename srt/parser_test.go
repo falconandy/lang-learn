@@ -4,12 +4,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/falconandy/lang-learn"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSRT_Empty(t *testing.T) {
 	r := strings.NewReader("")
-	subtitles, err := NewParser().Parse(r)
+	subtitles, err := NewParser().Parse(r, nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(subtitles))
@@ -27,9 +28,9 @@ WOMAN: # Will make you smile ♪
 
 3
 00:02:00,000 --> 00:02:03,150
-<i>This icy force both foul and fair</i>
+<b>This icy force both foul and fair</b>
 `)
-	subtitles, err := NewParser().Parse(r)
+	subtitles, err := NewParser().Parse(r, langlearn.NewHTMLMarkupCleaner())
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(subtitles))
@@ -37,7 +38,7 @@ WOMAN: # Will make you smile ♪
 	assert.Equal(t, int64((1*60+52)*1000+680)*1000000, subtitles[0].Start.Nanoseconds())
 	assert.Equal(t, int64((1*60+55)*1000+630)*1000000, subtitles[0].End.Nanoseconds())
 	assert.Equal(t, 1, len(subtitles[0].Text))
-	assert.Equal(t, "<i>Born of cold and winter air</i>", subtitles[0].Text[0])
+	assert.Equal(t, "Born of cold and winter air", subtitles[0].Text[0])
 
 	assert.Equal(t, int64((1*60+55)*1000+640)*1000000, subtitles[1].Start.Nanoseconds())
 	assert.Equal(t, int64((1*60+59)*1000+990)*1000000, subtitles[1].End.Nanoseconds())
@@ -48,5 +49,5 @@ WOMAN: # Will make you smile ♪
 	assert.Equal(t, int64((2*60+0)*1000+0)*1000000, subtitles[2].Start.Nanoseconds())
 	assert.Equal(t, int64((2*60+3)*1000+150)*1000000, subtitles[2].End.Nanoseconds())
 	assert.Equal(t, 1, len(subtitles[2].Text))
-	assert.Equal(t, "<i>This icy force both foul and fair</i>", subtitles[2].Text[0])
+	assert.Equal(t, "This icy force both foul and fair", subtitles[2].Text[0])
 }

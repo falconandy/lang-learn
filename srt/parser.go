@@ -12,6 +12,10 @@ import (
 	"github.com/falconandy/lang-learn"
 )
 
+const (
+	timePattern = `((\d{0,2}):(\d{0,2}):(\d{0,2}),(\d{0,3}))`
+)
+
 type Parser struct {
 	utf8Signature []byte
 	indexRe       *regexp.Regexp
@@ -22,11 +26,11 @@ func NewParser() *Parser {
 	return &Parser{
 		utf8Signature: []byte{'\xEF', '\xBB', '\xBF'},
 		indexRe:       regexp.MustCompile(`^\d+$`),
-		timeRe:        regexp.MustCompile(`^\s*((\d\d):(\d\d):(\d\d),(\d\d\d)) --> ((\d\d):(\d\d):(\d\d),(\d\d\d))\s*$`),
+		timeRe:        regexp.MustCompile(fmt.Sprintf(`^\s*%s --> %s\s*$`, timePattern, timePattern)),
 	}
 }
 
-func (p *Parser) Parse(r io.Reader) (subtitles langlearn.Subtitles, err error) {
+func (p *Parser) Parse(r io.Reader, cleaner langlearn.SubtitleCleaner) (subtitles []*langlearn.Subtitle, err error) {
 	s := bufio.NewScanner(r)
 	var subtitle *langlearn.Subtitle
 	firstLine := true
@@ -50,7 +54,11 @@ func (p *Parser) Parse(r io.Reader) (subtitles langlearn.Subtitles, err error) {
 			}
 		default:
 			if subtitle.End > 0 {
-				subtitle.Text = append(subtitle.Text, string(line))
+				line := string(line)
+				if cleaner != nil {
+					line = cleaner.Clean(line)
+				}
+				subtitle.Text = append(subtitle.Text, line)
 			} else {
 				match := p.timeRe.FindSubmatch(line)
 				if match == nil {

@@ -7,7 +7,7 @@ import (
 )
 
 func TestHTMLMarkupCleaner(t *testing.T) {
-	c := newHTMLMarkupCleaner()
+	c := NewHTMLMarkupCleaner()
 
 	assert.Equal(t, "", c.Clean(""))
 	assert.Equal(t, "test", c.Clean("test"))
