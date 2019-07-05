@@ -5,7 +5,7 @@ import (
 
 	"github.com/falconandy/vlc"
 
-	"github.com/falconandy/lang-learn"
+	langlearn "github.com/falconandy/lang-learn"
 )
 
 const (

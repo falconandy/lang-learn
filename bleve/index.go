@@ -5,7 +5,7 @@ import (
 
 	"github.com/blevesearch/segment"
 
-	"github.com/falconandy/lang-learn"
+	langlearn "github.com/falconandy/lang-learn"
 )
 
 type subtitleIndex struct {

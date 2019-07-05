@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/falconandy/lang-learn"
+	langlearn "github.com/falconandy/lang-learn"
 )
 
 func TestSubtitleIndex(t *testing.T) {

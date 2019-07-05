@@ -1,14 +1,12 @@
-import React, { Component } from 'react';
-import './App.css';
+import React from 'react';
+import styles from './App.module.css';
 
-class App extends Component {
-  public render() {
+const App: React.FC = () => {
     return (
-      <div className="App">
-        Learn the Language!
-      </div>
+        <div className={styles.root}>
+            Learn the Language!
+        </div>
     );
-  }
-}
+};
 
 export default App;

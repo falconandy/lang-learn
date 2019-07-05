@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/falconandy/lang-learn"
+	langlearn "github.com/falconandy/lang-learn"
 )
 
 const (

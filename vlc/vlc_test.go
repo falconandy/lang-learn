@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/falconandy/lang-learn"
+	langlearn "github.com/falconandy/lang-learn"
 )
 
 func TestVLCStart(t *testing.T) {
@@ -25,7 +25,7 @@ func TestVLCPlay(t *testing.T) {
 	err := player.Start()
 	assert.Nil(t, err)
 
-	err = player.Play("/media/falconandy/_VIDEO/SLR.avi")
+	err = player.Play("/mnt/media/falconandy/_VIDEO/SLR.avi")
 	assert.Nil(t, err)
 
 	time.Sleep(time.Second * 3)

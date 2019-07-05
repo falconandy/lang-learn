@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/falconandy/lang-learn"
 	"github.com/stretchr/testify/assert"
+
+	langlearn "github.com/falconandy/lang-learn"
 )
 
 func TestSRT_Empty(t *testing.T) {
